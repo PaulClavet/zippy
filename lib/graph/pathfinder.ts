@@ -10,13 +10,14 @@ import {
 } from "./types";
 
 /**
- * Fallback maximum wormhole lifetime (hours), used only when a hole's type is
- * unknown (e.g. K162, or an untyped sig). 48h is the longest any EVE wormhole
- * lives (B041/B520/C391/U319), so only holes older than THIS are impossible
- * regardless of type. When the type is known we use its specific SDE lifetime
- * (WormholeInfo.maxLifeHours) instead.
+ * Fallback maximum wormhole lifetime (hours) for holes with NO usable type
+ * (untyped, or an unrecognized code). Set to 16h — the most common lifetime —
+ * because well-run maps record types diligently, so an untyped hole is usually
+ * a stale/error sig; a tighter ceiling drops those ghosts sooner. Known types
+ * use their SDE lifetime; K162 (generic reverse) carries its own 48h ceiling
+ * (see wormholeLifeHours) so legit long-hole exits aren't false-dropped.
  */
-export const FALLBACK_MAX_WORMHOLE_LIFETIME_HOURS = 48;
+export const FALLBACK_MAX_WORMHOLE_LIFETIME_HOURS = 16;
 
 /** Constraints applied to wormhole connections during routing. */
 export interface WormholeConstraints {

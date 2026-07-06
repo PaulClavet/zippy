@@ -12,12 +12,19 @@ interface WormholeTypeInfo {
 
 const WH = wormholesJson as Record<string, WormholeTypeInfo>;
 
+/** K162 has no fixed life (it inherits its parent hole's); use the 48h ceiling
+ *  — the longest any EVE wormhole lives — so legit exits aren't false-dropped. */
+const K162_CEILING_HOURS = 48;
+
 /**
- * Maximum lifetime (hours) for a wormhole type code, or undefined when unknown
- * (e.g. K162, whose real lifetime is that of the hole that spawned it).
+ * Maximum lifetime (hours) for a wormhole type code. K162 → 48h ceiling; a
+ * known type → its SDE lifetime; anything else (untyped/unrecognized) →
+ * undefined, so the caller applies its untyped fallback.
  */
 export function wormholeLifeHours(code: string | null | undefined): number | undefined {
   if (!code) return undefined;
-  const rec = WH[code.trim().toUpperCase()];
+  const c = code.trim().toUpperCase();
+  if (c === "K162") return K162_CEILING_HOURS;
+  const rec = WH[c];
   return rec && rec.lifeHours != null ? rec.lifeHours : undefined;
 }

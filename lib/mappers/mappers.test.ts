@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseEveScout, type EveScoutSignature } from "./evescout";
 import { parseTripwire } from "./tripwire";
 import { wormholeSizeFromCode } from "./statics";
+import { wormholeLifeHours } from "./wormholes";
 
 const NOW = Date.parse("2026-07-06T00:00:00.000Z");
 
@@ -15,6 +16,18 @@ describe("wormholeSizeFromCode", () => {
     expect(wormholeSizeFromCode("K162")).toBe("unknown");
     expect(wormholeSizeFromCode("nope")).toBe("unknown");
     expect(wormholeSizeFromCode(undefined)).toBe("unknown");
+  });
+});
+
+describe("wormholeLifeHours", () => {
+  it("returns the SDE lifetime for known types", () => {
+    expect(wormholeLifeHours("N110")).toBe(24);
+    expect(wormholeLifeHours("c247")).toBe(16); // case-insensitive
+  });
+  it("gives K162 a 48h ceiling and unknown/untyped undefined", () => {
+    expect(wormholeLifeHours("K162")).toBe(48);
+    expect(wormholeLifeHours("ZZZ")).toBeUndefined();
+    expect(wormholeLifeHours(undefined)).toBeUndefined();
   });
 });
 

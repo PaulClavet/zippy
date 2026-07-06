@@ -50,7 +50,7 @@ function WormholeChips({ wh }: { wh: WormholeDetailsDTO }) {
       <Chip title="Lifetime status" className={wh.life === "eol" ? "text-rose-300" : "text-emerald-300"}>
         {wh.life === "eol" ? "end-of-life" : "life: stable"}
       </Chip>
-      {wh.maxLifeHours != null && (
+      {wh.maxLifeHours != null && wh.type !== "K162" && (
         <Chip title="Maximum lifetime for this wormhole type">{wh.maxLifeHours}h life</Chip>
       )}
       {wh.ageHours != null && <Chip title="Time since discovery">found {hrs(wh.ageHours)} ago</Chip>}

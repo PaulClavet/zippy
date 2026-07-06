@@ -94,17 +94,24 @@ describe("findRoute", () => {
     expect(route!.wormholeJumps).toBe(0);
   });
 
-  it("drops impossible wormholes past their TYPE's lifetime (48h fallback if unknown)", () => {
-    // Unknown max life (like K162) aged 30h is still possible under the 48h fallback.
-    const generic = buildStarMap(systems, gates, [{ ...wormhole, info: { ...wormhole.info, ageHours: 30 } }]);
-    expect(findRoute(generic, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(1);
+  it("drops impossible wormholes past their lifetime (16h untyped fallback, 48h K162)", () => {
+    // Untyped hole (no maxLifeHours) aged 30h → 16h fallback → impossible → dropped.
+    const untyped = buildStarMap(systems, gates, [
+      { ...wormhole, info: { ...wormhole.info, ageHours: 30, maxLifeHours: undefined } },
+    ]);
+    expect(findRoute(untyped, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(0);
 
-    // A 16h-max hole aged 30h is impossible → dropped, falling back to gates.
+    // A K162 carries a 48h ceiling → 30h is still possible → kept.
+    const k162 = buildStarMap(systems, gates, [
+      { ...wormhole, info: { ...wormhole.info, ageHours: 30, maxLifeHours: 48 } },
+    ]);
+    expect(findRoute(k162, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(1);
+
+    // A known 16h-max hole aged 30h → impossible → dropped; the keep-flag overrides.
     const short = buildStarMap(systems, gates, [
       { ...wormhole, info: { ...wormhole.info, ageHours: 30, maxLifeHours: 16 } },
     ]);
     expect(findRoute(short, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(0);
-    // Explicitly keep impossible holes → used again (1 jump).
     expect(
       findRoute(short, 1, 4, { useWormholes: true, wormholes: { dropImpossibleAge: false } })!.wormholeJumps,
     ).toBe(1);
