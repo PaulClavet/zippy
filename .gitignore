@@ -21,11 +21,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (keep .env.example tracked)
+# env files & secrets (keep .env.example tracked)
 .env
-.env*.local
-.env.development
-.env.production
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+secrets/
+*.secret
 
 # testing
 /coverage
