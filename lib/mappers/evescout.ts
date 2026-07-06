@@ -3,6 +3,7 @@ import type { LifeStatus, WormholeSize } from "../graph/types";
 import { USER_AGENT } from "../eve/constants";
 import { formatSignature } from "../eve/format";
 import { wormholeSizeFromCode } from "./statics";
+import { wormholeLifeHours } from "./wormholes";
 import type { MapperResult } from "./types";
 
 const EVE_SCOUT_URL = "https://api.eve-scout.com/v2/public/signatures";
@@ -69,6 +70,7 @@ export function parseEveScout(data: EveScoutSignature[], now: number): WormholeL
         wormholeType: s.wh_type ?? undefined,
         ageHours,
         estimatedHoursLeft: s.remaining_hours ?? undefined,
+        maxLifeHours: wormholeLifeHours(s.wh_type),
       },
     });
   }

@@ -45,6 +45,8 @@ export interface WormholeInfo {
   ageHours?: number;
   /** Reported hours remaining, when a mapper provides an estimate (Eve-Scout). */
   estimatedHoursLeft?: number;
+  /** Maximum lifetime (hours) for this wormhole's type, if known (from the SDE). */
+  maxLifeHours?: number;
 }
 
 export interface Connection {

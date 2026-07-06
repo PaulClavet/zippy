@@ -94,14 +94,20 @@ describe("findRoute", () => {
     expect(route!.wormholeJumps).toBe(0);
   });
 
-  it("drops impossible wormholes (age > 24h) by default", () => {
-    const impossible = { ...wormhole, info: { ...wormhole.info, ageHours: 30 } };
-    const map = buildStarMap(systems, gates, [impossible]);
-    // Default: a >24h hole can't be real → dropped, so it falls back to gates.
-    expect(findRoute(map, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(0);
-    // Explicitly keep them → the hole is used (1 jump).
-    const kept = findRoute(map, 1, 4, { useWormholes: true, wormholes: { dropImpossibleAge: false } });
-    expect(kept!.wormholeJumps).toBe(1);
+  it("drops impossible wormholes past their TYPE's lifetime (48h fallback if unknown)", () => {
+    // Unknown max life (like K162) aged 30h is still possible under the 48h fallback.
+    const generic = buildStarMap(systems, gates, [{ ...wormhole, info: { ...wormhole.info, ageHours: 30 } }]);
+    expect(findRoute(generic, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(1);
+
+    // A 16h-max hole aged 30h is impossible → dropped, falling back to gates.
+    const short = buildStarMap(systems, gates, [
+      { ...wormhole, info: { ...wormhole.info, ageHours: 30, maxLifeHours: 16 } },
+    ]);
+    expect(findRoute(short, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(0);
+    // Explicitly keep impossible holes → used again (1 jump).
+    expect(
+      findRoute(short, 1, 4, { useWormholes: true, wormholes: { dropImpossibleAge: false } })!.wormholeJumps,
+    ).toBe(1);
   });
 
   it("drops ghost sigs (no type, no signature) by default", () => {

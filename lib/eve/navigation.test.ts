@@ -22,7 +22,7 @@ const gates: Array<[SystemId, SystemId]> = [
 const wormhole: WormholeLink = {
   a: 3,
   b: 31000001,
-  info: { size: "large", mass: "stable", life: "stable", signatureFrom: "XYZ-001", signatureTo: "QRS-999", wormholeType: "K162", ageHours: 2 },
+  info: { size: "large", mass: "stable", life: "stable", signatureFrom: "XYZ-001", signatureTo: "QRS-999", wormholeType: "K162", ageHours: 2, maxLifeHours: 16 },
 };
 
 describe("navigation", () => {
@@ -43,8 +43,9 @@ describe("navigation", () => {
     expect(whStep.wormhole?.signature).toBe("XYZ-001");
     expect(whStep.wormhole?.returnSignature).toBe("QRS-999");
     expect(whStep.wormhole?.size).toBe("large");
-    // Discovered 2h ago → at most 24 - 2 = 22h left.
-    expect(whStep.wormhole?.maxHoursLeft).toBe(22);
+    // 16h-life hole discovered 2h ago → at most 16 - 2 = 14h left.
+    expect(whStep.wormhole?.maxLifeHours).toBe(16);
+    expect(whStep.wormhole?.maxHoursLeft).toBe(14);
 
     const last = steps[steps.length - 1];
     expect(last.systemName).toBe("Uedama");

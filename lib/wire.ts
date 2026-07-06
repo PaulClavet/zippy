@@ -20,6 +20,7 @@ export interface WormholeDetailsDTO {
   life: string;
   ageHours?: number;
   estimatedHoursLeft?: number;
+  maxLifeHours?: number;
   maxHoursLeft?: number;
 }
 

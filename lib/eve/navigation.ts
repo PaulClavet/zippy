@@ -5,7 +5,7 @@ import type {
   WormholeInfo,
   WormholeSize,
 } from "../graph/types";
-import { MAX_WORMHOLE_LIFETIME_HOURS, type Route } from "../graph/pathfinder";
+import { FALLBACK_MAX_WORMHOLE_LIFETIME_HOURS, type Route } from "../graph/pathfinder";
 
 /** A hole flagged end-of-life has at most ~4 hours left. */
 const EOL_MAX_HOURS = 4;
@@ -23,7 +23,9 @@ export interface WormholeDetails {
   ageHours?: number;
   /** Reported hours remaining, if a mapper estimates it. */
   estimatedHoursLeft?: number;
-  /** Upper bound on time remaining, from discovery age (+ EOL cap). */
+  /** This wormhole type's maximum lifetime (hours), if known. */
+  maxLifeHours?: number;
+  /** Upper bound on time remaining, from type lifetime − discovery age (+ EOL cap). */
   maxHoursLeft?: number;
 }
 
@@ -45,9 +47,10 @@ export interface RouteStep {
 
 function maxHoursLeft(wh: WormholeInfo): number | undefined {
   if (wh.ageHours == null) return undefined;
-  let max = Math.max(0, MAX_WORMHOLE_LIFETIME_HOURS - wh.ageHours);
+  const maxLife = wh.maxLifeHours ?? FALLBACK_MAX_WORMHOLE_LIFETIME_HOURS;
+  let max = Math.max(0, maxLife - wh.ageHours);
   if (wh.life === "eol") max = Math.min(max, EOL_MAX_HOURS);
-  return max;
+  return Math.round(max * 10) / 10;
 }
 
 /**
@@ -96,6 +99,7 @@ export function describeRoute(route: Route): RouteStep[] {
           life: wh.life,
           ageHours: wh.ageHours,
           estimatedHoursLeft: wh.estimatedHoursLeft,
+          maxLifeHours: wh.maxLifeHours,
           maxHoursLeft: maxHoursLeft(wh),
         }
       : undefined;

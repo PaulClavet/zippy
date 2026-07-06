@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "sde:build": "node scripts/build-sde.mjs"
+    "sde:build": "node scripts/build-sde.mjs",
+    "wh:build": "node scripts/build-wormholes.mjs"
   },
   "dependencies": {
     "next": "^15.1.6",

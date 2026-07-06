@@ -10,11 +10,13 @@ import {
 } from "./types";
 
 /**
- * Standard maximum wormhole lifetime (hours). Nothing in EVE currently lasts
- * beyond this, so a hole older than it is an "impossible wormhole" and is
- * dropped by default.
+ * Fallback maximum wormhole lifetime (hours), used only when a hole's type is
+ * unknown (e.g. K162, or an untyped sig). 48h is the longest any EVE wormhole
+ * lives (B041/B520/C391/U319), so only holes older than THIS are impossible
+ * regardless of type. When the type is known we use its specific SDE lifetime
+ * (WormholeInfo.maxLifeHours) instead.
  */
-export const MAX_WORMHOLE_LIFETIME_HOURS = 24;
+export const FALLBACK_MAX_WORMHOLE_LIFETIME_HOURS = 48;
 
 /** Constraints applied to wormhole connections during routing. */
 export interface WormholeConstraints {
@@ -107,12 +109,9 @@ function isPassable(conn: Connection, opts: RouteOptions): boolean {
     return false;
   }
   // Impossible-wormhole (age) and ghost-sig (no type/id) guards; default on.
-  if (
-    c.dropImpossibleAge !== false &&
-    wh.ageHours != null &&
-    wh.ageHours > MAX_WORMHOLE_LIFETIME_HOURS
-  ) {
-    return false;
+  if (c.dropImpossibleAge !== false && wh.ageHours != null) {
+    const maxLife = wh.maxLifeHours ?? FALLBACK_MAX_WORMHOLE_LIFETIME_HOURS;
+    if (wh.ageHours > maxLife) return false;
   }
   if (c.dropUnidentified !== false && !wh.wormholeType && !wh.signatureFrom && !wh.signatureTo) {
     return false;

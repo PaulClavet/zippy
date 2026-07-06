@@ -3,6 +3,7 @@ import type { LifeStatus, MassStatus } from "../graph/types";
 import { USER_AGENT } from "../eve/constants";
 import { formatSignature } from "../eve/format";
 import { wormholeSizeFromCode } from "./statics";
+import { wormholeLifeHours } from "./wormholes";
 import type { MapperResult } from "./types";
 
 /**
@@ -105,6 +106,7 @@ export function parseTripwire(chain: TripwireChain, now: number): WormholeLink[]
         signatureTo: cleanSig(b.signatureID),
         wormholeType: type,
         ageHours,
+        maxLifeHours: wormholeLifeHours(type),
       },
     });
   }
