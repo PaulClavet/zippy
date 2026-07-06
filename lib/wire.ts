@@ -91,6 +91,8 @@ export interface TrackedPilotDTO {
   systemId: number;
   systemName: string;
   jumps: number;
+  /** Minutes since this pilot last changed system (movement-based idle proxy). */
+  idleMinutes: number;
 }
 
 export interface TrackingResponseDTO {

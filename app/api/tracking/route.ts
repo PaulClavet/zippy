@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { applyWormholes, cloneStarMap } from "@/lib/graph/build";
+import { recordAndIdle } from "@/lib/eve/tracking-cache";
 import { distancesFrom } from "@/lib/graph/pathfinder";
 import { fetchTripwire, tripwireOccupants, TripwireLoginError } from "@/lib/mappers/tripwire";
 import { withTripwireSession } from "@/lib/mappers/tripwire-session";
@@ -55,8 +56,13 @@ export async function GET(req: NextRequest) {
         }),
       );
 
-      const pilots = perSystem
-        .flat()
+      const flat = perSystem.flat();
+      const idle = recordAndIdle(
+        flat.map((p) => ({ name: p.name, systemId: p.systemId })),
+        Date.now(),
+      );
+      const pilots = flat
+        .map((p) => ({ ...p, idleMinutes: idle.get(p.name) ?? 0 }))
         .sort((a, b) => a.jumps - b.jumps || a.name.localeCompare(b.name));
 
       return {

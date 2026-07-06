@@ -37,6 +37,8 @@ export function ChainAwareness({
   const [rows, setRows] = useState<Row[] | null>(null);
   const [meta, setMeta] = useState<{ count: number; truncated: boolean; updatedAt: number } | null>(null);
   const [error, setError] = useState("");
+  const [hideIdle, setHideIdle] = useState(true);
+  const [idleMin, setIdleMin] = useState(15);
   const prev = useRef<Map<string, number>>(new Map());
 
   // Reset the movement baseline whenever the focus changes.
@@ -91,6 +93,9 @@ export function ChainAwareness({
     }
   }
 
+  const shown = rows ? (hideIdle ? rows.filter((r) => r.idleMinutes < idleMin) : rows) : null;
+  const hiddenCount = rows ? rows.length - (shown?.length ?? 0) : 0;
+
   return (
     <section className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -133,7 +138,28 @@ export function ChainAwareness({
 
           {error && <p className="mt-2 text-xs text-rose-300">{error}</p>}
 
-          {rows && rows.length > 0 ? (
+          <label className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-sky-500"
+              checked={hideIdle}
+              onChange={(e) => setHideIdle(e.target.checked)}
+            />
+            Hide idle pilots (no move in
+            <input
+              type="number"
+              min={1}
+              max={120}
+              className="w-14 rounded border border-slate-700 bg-slate-900 px-1 py-0.5 text-center text-slate-200 disabled:opacity-40"
+              value={idleMin}
+              disabled={!hideIdle}
+              onChange={(e) => setIdleMin(Number(e.target.value) || 15)}
+            />
+            min) — likely logged off, but may just be parked
+            {hiddenCount > 0 && <span className="text-slate-500">· {hiddenCount} hidden</span>}
+          </label>
+
+          {shown && shown.length > 0 ? (
             <div className="mt-3 overflow-hidden rounded-lg border border-slate-800">
               <table className="w-full border-collapse text-sm">
                 <thead>
@@ -146,7 +172,7 @@ export function ChainAwareness({
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((r, i) => (
+                  {shown.map((r, i) => (
                     <tr
                       key={`${r.name}-${i}`}
                       className={`border-t border-slate-800 ${
@@ -156,7 +182,17 @@ export function ChainAwareness({
                       <td className={`px-2 py-1.5 text-center ${TREND[r.trend].className}`} title={TREND[r.trend].title}>
                         {TREND[r.trend].icon}
                       </td>
-                      <td className="px-3 py-1.5 font-medium text-slate-100">{r.name}</td>
+                      <td className="px-3 py-1.5 font-medium text-slate-100">
+                        {r.name}
+                        {r.idleMinutes >= 5 && (
+                          <span
+                            className="ml-2 rounded bg-slate-800 px-1 py-0.5 font-mono text-[10px] text-slate-500"
+                            title="Minutes since this pilot last changed system"
+                          >
+                            idle {r.idleMinutes}m
+                          </span>
+                        )}
+                      </td>
                       <td className="px-3 py-1.5 text-slate-300">{r.ship}</td>
                       <td className="px-3 py-1.5">
                         <a
@@ -185,7 +221,9 @@ export function ChainAwareness({
           )}
           <p className="mt-2 text-[11px] text-slate-600">
             Live every 10s. <span className="text-emerald-400">▼</span> inbound ·{" "}
-            <span className="text-slate-500">▲</span> moving away. Pilots who hide in Tripwire aren&apos;t shown.
+            <span className="text-slate-500">▲</span> moving away. Tripwire shares no online status, so
+            &ldquo;idle&rdquo; is inferred from movement (a logged-off pilot who left Tripwire open never
+            moves). Pilots who hide in Tripwire aren&apos;t shown.
           </p>
         </>
       )}
