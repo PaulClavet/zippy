@@ -102,9 +102,18 @@ export interface TripwireCredentials {
   password: string;
 }
 
+/** Bad username/password (distinct from a network/server failure). */
+export class TripwireLoginError extends Error {}
+
 /**
  * Log in to a Tripwire instance and return the session cookie string to reuse
  * on subsequent refresh calls.
+ *
+ * Tripwire answers a bad login with HTTP 200 and a JSON error body — e.g.
+ * `{"field":"username","error":"Username doesn't exist."}` — while STILL
+ * setting an (unauthenticated) PHPSESSID. So we must inspect the body before
+ * trusting the cookie, or a wrong password would look like success and only
+ * blow up later as a confusing 403 on refresh.php.
  */
 export async function tripwireLogin(creds: TripwireCredentials): Promise<string> {
   const res = await fetch(`${creds.baseUrl.replace(/\/$/, "")}/login.php`, {
@@ -121,10 +130,20 @@ export async function tripwireLogin(creds: TripwireCredentials): Promise<string>
     }),
     redirect: "manual",
   });
+
+  const text = await res.text();
+  try {
+    const body = JSON.parse(text);
+    if (body && body.error) throw new TripwireLoginError(String(body.error));
+  } catch (err) {
+    if (err instanceof TripwireLoginError) throw err;
+    // Non-JSON body — unexpected, but fall through to the cookie/status checks.
+  }
+
   const cookies = res.headers.getSetCookie?.() ?? [];
   const session = cookies.map((c) => c.split(";")[0]).find((c) => c.startsWith("PHPSESSID="));
   if (!session) {
-    throw new Error("Tripwire login failed (no session cookie returned)");
+    throw new TripwireLoginError("Tripwire login failed (no session cookie returned).");
   }
   return session;
 }

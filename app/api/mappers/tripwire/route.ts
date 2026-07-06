@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { decrypt, encrypt } from "@/lib/crypto";
-import { fetchTripwire, tripwireLogin, type TripwireCredentials } from "@/lib/mappers/tripwire";
+import {
+  fetchTripwire,
+  tripwireLogin,
+  TripwireLoginError,
+  type TripwireCredentials,
+} from "@/lib/mappers/tripwire";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -97,6 +102,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: "not-connected" }, { status: 401 });
   } catch (err) {
+    if (err instanceof TripwireLoginError) {
+      return NextResponse.json({ error: "tripwire-login", message: err.message }, { status: 401 });
+    }
     return NextResponse.json(
       { error: "tripwire-failed", message: err instanceof Error ? err.message : String(err) },
       { status: 502 },

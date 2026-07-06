@@ -169,7 +169,14 @@ export function RoutePlanner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        // Remembered creds stopped working (e.g. password changed) — prompt reconnect.
+        if (res.status === 401) {
+          setTripwireConnected(false);
+          setMapperMsg("Tripwire needs reconnecting.");
+        }
+        return;
+      }
       const data = (await res.json()) as MapperResultDTO;
       setChainBySource((s) => ({ ...s, tripwire: data.links }));
       setTripwireConnected(true);
