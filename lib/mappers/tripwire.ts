@@ -4,7 +4,7 @@ import { USER_AGENT } from "../eve/constants";
 import { formatSignature } from "../eve/format";
 import { wormholeSizeFromCode } from "./statics";
 import { wormholeLifeHours } from "./wormholes";
-import type { MapperResult } from "./types";
+import type { MapperResult, TrackedOccupant } from "./types";
 
 /**
  * Tripwire has no official/public API. This client mirrors what Short Circuit
@@ -31,6 +31,7 @@ interface TripwireWormhole {
 interface TripwireChain {
   signatures?: Record<string, TripwireSignature> | TripwireSignature[];
   wormholes?: Record<string, TripwireWormhole> | TripwireWormhole[];
+  occupied?: Array<{ systemID: number | string; count: number | string }>;
 }
 
 const BLANK_SIGS = new Set(["", "-------", "???", "----", "????"]);
@@ -187,10 +188,46 @@ export async function fetchTripwire(
   const chain = (await res.json()) as TripwireChain;
   const now = Date.now();
   const links = parseTripwire(chain, now);
+  const occupied = Array.isArray(chain.occupied)
+    ? chain.occupied
+        .map((o) => ({ systemID: Number(o.systemID), count: Number(o.count) }))
+        .filter((o) => o.systemID > 0)
+    : [];
   return {
     source: "tripwire",
     fetchedAt: new Date(now).toISOString(),
     count: links.length,
     links,
+    occupied,
   };
+}
+
+function cleanShipName(ship: string | undefined): string {
+  if (!ship) return "-";
+  // Tripwire may append "|<mass mods>" to the ship type; keep just the name.
+  const name = String(ship).split("|")[0].trim();
+  return name || "-";
+}
+
+/**
+ * Fetch the tracked pilots in a system from Tripwire (occupants.php). Returns
+ * name + ship type per pilot on the caller's mask; pilots who hide their ship
+ * show "-", and fully-hidden pilots aren't returned at all (server-side).
+ */
+export async function tripwireOccupants(
+  baseUrl: string,
+  sessionCookie: string,
+  systemId: number,
+): Promise<TrackedOccupant[]> {
+  const url = new URL(`${baseUrl.replace(/\/$/, "")}/occupants.php`);
+  url.searchParams.set("systemID", String(systemId));
+  const res = await fetch(url, {
+    headers: { Accept: "application/json", "User-Agent": USER_AGENT, Cookie: sessionCookie },
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { occupants?: Array<{ characterName?: string; shipTypeName?: string }> };
+  const list = Array.isArray(data.occupants) ? data.occupants : [];
+  return list
+    .map((o) => ({ name: String(o.characterName ?? "").trim(), ship: cleanShipName(o.shipTypeName) }))
+    .filter((o) => o.name.length > 0);
 }

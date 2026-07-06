@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildStarMap, type WormholeLink } from "./build";
-import { findRoute } from "./pathfinder";
+import { distancesFrom, findRoute } from "./pathfinder";
 import type { SolarSystem, SystemId } from "./types";
 
 const sys = (id: number, name: string, security: number): SolarSystem => ({
@@ -128,6 +128,16 @@ describe("findRoute", () => {
   it("returns null when no route exists", () => {
     const map = buildStarMap([...systems, sys(99, "Island", 0.5)], gates);
     expect(findRoute(map, 1, 99)).toBeNull();
+  });
+
+  it("distancesFrom counts hops over gates and wormholes", () => {
+    const map = buildStarMap(systems, gates, [wormhole]);
+    const d = distancesFrom(map, 1);
+    expect(d.get(1)).toBe(0);
+    expect(d.get(2)).toBe(1);
+    expect(d.get(5)).toBe(1);
+    expect(d.get(4)).toBe(1); // reached via the wormhole, not the 2-gate path
+    expect(d.get(3)).toBe(2);
   });
 
   it("returns a zero-jump route for identical endpoints", () => {

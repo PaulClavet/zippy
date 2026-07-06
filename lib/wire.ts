@@ -84,3 +84,20 @@ export interface CharacterDTO {
   id: number;
   name: string;
 }
+
+export interface TrackedPilotDTO {
+  name: string;
+  ship: string;
+  systemId: number;
+  systemName: string;
+  jumps: number;
+}
+
+export interface TrackingResponseDTO {
+  focusSystemId: number;
+  focusName: string;
+  pilots: TrackedPilotDTO[];
+  count: number;
+  truncated: boolean;
+  generatedAt: string;
+}

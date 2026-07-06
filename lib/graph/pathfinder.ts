@@ -208,3 +208,39 @@ export function findRoute(
 
   return { hops, jumps: connections.length, gateJumps, wormholeJumps };
 }
+
+/**
+ * Shortest hop-count (jumps) from `source` to every reachable system, over
+ * gates AND wormholes (a wormhole counts as one jump). One Dijkstra gives the
+ * distance to everyone at once — used for "chain awareness" fleet distances.
+ * Respects the same wormhole passability filters as routing.
+ */
+export function distancesFrom(
+  map: StarMap,
+  source: SystemId,
+  options: RouteOptions = {},
+): Map<SystemId, number> {
+  const dist = new Map<SystemId, number>([[source, 0]]);
+  const visited = new Set<SystemId>();
+  const heap = new MinHeap<SystemId>();
+  heap.push(0, source);
+
+  while (heap.size > 0) {
+    const u = heap.pop()!;
+    if (visited.has(u)) continue;
+    visited.add(u);
+    const edges = map.connections.get(u);
+    if (!edges) continue;
+    for (const conn of edges) {
+      const v = conn.to;
+      if (visited.has(v)) continue;
+      if (!isPassable(conn, options)) continue;
+      const nd = (dist.get(u) ?? Infinity) + 1;
+      if (nd < (dist.get(v) ?? Infinity)) {
+        dist.set(v, nd);
+        heap.push(nd, v);
+      }
+    }
+  }
+  return dist;
+}

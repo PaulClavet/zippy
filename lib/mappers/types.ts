@@ -9,4 +9,13 @@ export interface MapperResult {
   count: number;
   links: WormholeLink[];
   warnings?: string[];
+  /** Tripwire only: per-system tracked pilot counts (mask-wide). */
+  occupied?: Array<{ systemID: number; count: number }>;
+}
+
+/** A tracked pilot in a system (from Tripwire occupants.php). */
+export interface TrackedOccupant {
+  name: string;
+  /** Ship type name, or "-" when the pilot hides it. */
+  ship: string;
 }

@@ -16,6 +16,7 @@ import type {
   PlanResponseDTO,
   WormholeLinkDTO,
 } from "@/lib/wire";
+import { ChainAwareness } from "./ChainAwareness";
 import { RouteTable } from "./RouteTable";
 import { SystemField } from "./SystemField";
 
@@ -357,6 +358,13 @@ export function RoutePlanner() {
             </Section>
           </>
         )}
+
+        <ChainAwareness
+          tripwireConnected={tripwireConnected}
+          character={character}
+          defaultFocus={source}
+          tripwireBase={twBase}
+        />
       </div>
 
       {/* Right: options */}
