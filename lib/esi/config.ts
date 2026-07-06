@@ -19,3 +19,17 @@ export function callbackUrl(): string {
 export function ssoConfigured(): boolean {
   return clientId().length > 0 && clientSecret().length > 0;
 }
+
+/**
+ * The public origin (scheme + host) Zippy is served from, derived from the
+ * registered callback URL. Used to build post-login redirects so they land on
+ * the real public host when running behind a reverse proxy / Tailscale Funnel,
+ * not the internal request origin (e.g. localhost:3000).
+ */
+export function publicOrigin(): string {
+  try {
+    return new URL(callbackUrl()).origin;
+  } catch {
+    return "http://localhost:3000";
+  }
+}

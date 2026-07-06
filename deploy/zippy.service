@@ -1,0 +1,23 @@
+# Zippy systemd unit (Benedict). Install to /etc/systemd/system/zippy.service
+#   sudo cp deploy/zippy.service /etc/systemd/system/zippy.service
+#   sudo systemctl daemon-reload && sudo systemctl enable --now zippy
+#
+# Serves the Next.js production build on 127.0.0.1:3000; Tailscale Funnel
+# (port 8443) exposes it publicly. `next start` forces NODE_ENV=production,
+# which turns on Secure cookies.
+[Unit]
+Description=Zippy — EVE Online wormhole route planner (Next.js)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=paul
+WorkingDirectory=/home/paul/zippy
+EnvironmentFile=/home/paul/zippy/.env.local
+ExecStart=/usr/local/bin/pnpm start -H 127.0.0.1 -p 3000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
