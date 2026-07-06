@@ -463,7 +463,14 @@ export function RoutePlanner() {
                     >
                       {mapperBusy ? "Connecting…" : "Connect & fetch chain"}
                     </button>
-                    <p className="text-[11px] text-slate-500">Saved encrypted; auto-loads next time.</p>
+                    <p className="text-[11px] leading-relaxed text-slate-400">
+                      <b className="text-slate-300">How this is saved:</b> Tripwire logs in with
+                      username/password only — no API token — so Zippy keeps your Tripwire password
+                      to auto-refresh the chain. It&apos;s encrypted (AES-256-GCM) and held in a
+                      cookie in your browser; only the Zippy server can decrypt it. That&apos;s
+                      weaker than a token sign-in — an accepted trade-off — so use a{" "}
+                      <b>Tripwire-only password</b>, never your EVE one.
+                    </p>
                   </div>
                 )}
               </div>
