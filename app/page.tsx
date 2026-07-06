@@ -12,14 +12,24 @@ export default function Home() {
             Wormhole-aware route planner for EVE Online. Gates + live holes, shortest path.
           </p>
         </div>
-        <a
-          className="text-xs text-slate-500 hover:text-slate-300"
-          href="https://github.com/secondfry/shortcircuit/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          inspired by Short Circuit ↗
-        </a>
+        <div className="flex flex-col items-end gap-1 text-xs">
+          <a
+            className="text-slate-300 hover:text-sky-300"
+            href="https://github.com/PaulClavet/zippy"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Zippy on GitHub ↗
+          </a>
+          <a
+            className="text-slate-500 hover:text-slate-300"
+            href="https://github.com/secondfry/shortcircuit/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            inspired by Short Circuit ↗
+          </a>
+        </div>
       </header>
 
       <RoutePlanner />

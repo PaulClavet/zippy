@@ -546,12 +546,12 @@ export function RoutePlanner() {
                 <Check label="Ignore end-of-life holes" checked={ignoreEol} onChange={setIgnoreEol} />
                 <Check label="Ignore mass-critical holes" checked={ignoreMassCrit} onChange={setIgnoreMassCrit} />
                 <Check
-                  label="Ignore ghost sigs (age > 24h)"
+                  label="Ignore impossible wormholes (age > 24h)"
                   checked={ignoreImpossibleAge}
                   onChange={setIgnoreImpossibleAge}
                 />
                 <Check
-                  label="Ignore unidentified holes (no type/ID)"
+                  label="Ignore ghost sigs (no type/ID)"
                   checked={ignoreUnidentified}
                   onChange={setIgnoreUnidentified}
                 />

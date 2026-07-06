@@ -69,7 +69,7 @@ describe("parseEveScout", () => {
 describe("parseTripwire", () => {
   const chain = {
     signatures: {
-      "1": { id: 1, signatureID: "abc-123", systemID: 30000142, modifiedTime: "2026-07-05T20:00:00Z" },
+      "1": { id: 1, signatureID: "abc123", systemID: 30000142, modifiedTime: "2026-07-05T20:00:00Z" },
       "2": { id: 2, signatureID: "xyz-789", systemID: 31001234, modifiedTime: "2026-07-05T20:00:00Z" },
       "3": { id: 3, signatureID: "-------", systemID: 30002187 },
     },

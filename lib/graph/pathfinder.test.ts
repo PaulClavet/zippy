@@ -94,17 +94,17 @@ describe("findRoute", () => {
     expect(route!.wormholeJumps).toBe(0);
   });
 
-  it("drops impossible-age ghost holes by default", () => {
-    const ghost = { ...wormhole, info: { ...wormhole.info, ageHours: 30 } };
-    const map = buildStarMap(systems, gates, [ghost]);
-    // Default: a >24h hole is a ghost → dropped, so it falls back to gates.
+  it("drops impossible wormholes (age > 24h) by default", () => {
+    const impossible = { ...wormhole, info: { ...wormhole.info, ageHours: 30 } };
+    const map = buildStarMap(systems, gates, [impossible]);
+    // Default: a >24h hole can't be real → dropped, so it falls back to gates.
     expect(findRoute(map, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(0);
     // Explicitly keep them → the hole is used (1 jump).
     const kept = findRoute(map, 1, 4, { useWormholes: true, wormholes: { dropImpossibleAge: false } });
     expect(kept!.wormholeJumps).toBe(1);
   });
 
-  it("drops unidentified holes (no type, no signature) by default", () => {
+  it("drops ghost sigs (no type, no signature) by default", () => {
     const blank: WormholeLink = { a: 1, b: 4, info: { size: "medium", mass: "stable", life: "stable" } };
     const map = buildStarMap(systems, gates, [blank]);
     expect(findRoute(map, 1, 4, { useWormholes: true })!.wormholeJumps).toBe(0);

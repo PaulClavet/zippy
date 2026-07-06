@@ -1,6 +1,7 @@
 import type { WormholeLink } from "../graph/build";
 import type { LifeStatus, WormholeSize } from "../graph/types";
 import { USER_AGENT } from "../eve/constants";
+import { formatSignature } from "../eve/format";
 import { wormholeSizeFromCode } from "./statics";
 import type { MapperResult } from "./types";
 
@@ -63,8 +64,8 @@ export function parseEveScout(data: EveScoutSignature[], now: number): WormholeL
         size,
         mass: "unknown", // Eve-Scout doesn't expose live mass status
         life,
-        signatureFrom: s.out_signature ?? undefined,
-        signatureTo: s.in_signature ?? undefined,
+        signatureFrom: s.out_signature ? formatSignature(s.out_signature) : undefined,
+        signatureTo: s.in_signature ? formatSignature(s.in_signature) : undefined,
         wormholeType: s.wh_type ?? undefined,
         ageHours,
         estimatedHoursLeft: s.remaining_hours ?? undefined,

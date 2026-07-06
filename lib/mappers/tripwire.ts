@@ -1,6 +1,7 @@
 import type { WormholeLink } from "../graph/build";
 import type { LifeStatus, MassStatus } from "../graph/types";
 import { USER_AGENT } from "../eve/constants";
+import { formatSignature } from "../eve/format";
 import { wormholeSizeFromCode } from "./statics";
 import type { MapperResult } from "./types";
 
@@ -54,7 +55,7 @@ function mapMass(value: string | undefined): MassStatus {
 function cleanSig(sig: string | undefined): string | undefined {
   if (!sig) return undefined;
   const trimmed = sig.trim();
-  return BLANK_SIGS.has(trimmed) ? undefined : trimmed.toUpperCase();
+  return BLANK_SIGS.has(trimmed) ? undefined : formatSignature(trimmed);
 }
 
 /**

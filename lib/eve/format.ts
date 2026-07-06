@@ -27,6 +27,19 @@ export function securityColor(security: number): string {
 
 export { displaySecurity };
 
+/**
+ * Normalize a cosmic signature id to EVE's display form — e.g. "abc123" or
+ * "abc-123" → "ABC-123". Signatures are 3 letters + 3 digits; anything that
+ * doesn't fit that shape is just returned uppercased.
+ */
+export function formatSignature(sig: string): string {
+  const compact = sig.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (/^[A-Z]{3}[0-9]{3}$/.test(compact)) {
+    return `${compact.slice(0, 3)}-${compact.slice(3)}`;
+  }
+  return sig.trim().toUpperCase();
+}
+
 const BAND_LABELS: Record<ReturnType<typeof securityBand>, string> = {
   highsec: "High-sec",
   lowsec: "Low-sec",
