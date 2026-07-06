@@ -30,13 +30,18 @@ EVE_CLIENT_SECRET=
 EOF
 chmod 600 .env.local
 
-# 4. systemd service
-sudo cp deploy/zippy.service /etc/systemd/system/zippy.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now zippy
-curl -s localhost:3000/api/meta          # sanity check
+# 4. systemd USER service (rootless — no sudo)
+mkdir -p ~/.config/systemd/user
+cp deploy/zippy.service ~/.config/systemd/user/zippy.service
+loginctl enable-linger                    # survive logout/reboot (self; no sudo)
+systemctl --user daemon-reload
+systemctl --user enable --now zippy
+curl -s localhost:3000/api/meta           # sanity check
 
-# 5. Expose via Tailscale Funnel (Funnel already enabled on this node)
+# 5. Expose via Tailscale Funnel.
+#    One-time (needs root once) so paul can manage funnels without sudo:
+sudo tailscale set --operator=paul
+#    Then (no sudo after the operator is set):
 tailscale funnel --bg --https=8443 http://127.0.0.1:3000
 tailscale funnel status
 curl -s https://benedict.tail2ac91c.ts.net:8443/api/meta
