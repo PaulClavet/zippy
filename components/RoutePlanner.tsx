@@ -546,7 +546,7 @@ export function RoutePlanner() {
                 <Check label="Ignore end-of-life holes" checked={ignoreEol} onChange={setIgnoreEol} />
                 <Check label="Ignore mass-critical holes" checked={ignoreMassCrit} onChange={setIgnoreMassCrit} />
                 <Check
-                  label="Ignore impossible wormholes (age > 24h)"
+                  label="Ignore impossible wormholes (older than their max life)"
                   checked={ignoreImpossibleAge}
                   onChange={setIgnoreImpossibleAge}
                 />
