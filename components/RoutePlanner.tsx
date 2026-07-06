@@ -387,41 +387,92 @@ export function RoutePlanner() {
             ) : undefined
           }
         >
-          <div className="space-y-2">
-            <button type="button" className={btnGhost} onClick={loadEveScout} disabled={mapperBusy}>
-              Load public holes (Eve-Scout)
+          <div className="space-y-3">
+            <button type="button" className={`${btnGhost} w-full`} onClick={loadEveScout} disabled={mapperBusy}>
+              {mapperBusy ? "Loading…" : "Reload public holes (Eve-Scout)"}
             </button>
+
             {tripwireConnected ? (
-              <div className="flex items-center justify-between rounded-md border border-emerald-900 bg-emerald-950/30 px-2 py-1.5">
-                <span className="text-xs text-emerald-300">Tripwire connected — auto-loads on visit</span>
+              <div className="flex items-center justify-between rounded-md border border-emerald-900 bg-emerald-950/30 px-3 py-2">
+                <span className="text-sm text-emerald-300">✓ Tripwire connected — auto-loads on visit</span>
                 <button type="button" className="text-xs text-slate-400 hover:text-rose-300" onClick={disconnectTripwire}>
                   Disconnect
                 </button>
               </div>
             ) : (
-              <>
-                <button
-                  type="button"
-                  className="block text-xs text-slate-400 hover:text-slate-200"
-                  onClick={() => setShowTripwire((v) => !v)}
-                >
-                  {showTripwire ? "▾" : "▸"} Connect Tripwire
+              <div className="rounded-md border border-fuchsia-700/60 bg-fuchsia-950/25 p-3">
+                <p className="text-sm font-semibold text-fuchsia-200">🪱 Connect your Wingspan Tripwire</p>
+                <p className="mt-1 text-xs text-slate-300">
+                  Route through the corp&apos;s live wormhole chain. Enter your Tripwire password once — it&apos;s
+                  stored encrypted and auto-loads on every visit.
+                </p>
+                <button type="button" className={`${btnPrimary} mt-3 w-full`} onClick={() => setShowTripwire((v) => !v)}>
+                  {showTripwire ? "Hide" : "Connect Tripwire"}
                 </button>
+
                 {showTripwire && (
-                  <div className="space-y-2 rounded-md border border-slate-800 p-2">
-                    <input className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs" value={twBase} onChange={(e) => setTwBase(e.target.value)} placeholder="Tripwire URL" />
-                    <input className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs" value={twUser} onChange={(e) => setTwUser(e.target.value)} placeholder="username (your in-game name)" autoComplete="off" />
-                    <input type="password" className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs" value={twPass} onChange={(e) => setTwPass(e.target.value)} placeholder="password" autoComplete="off" />
-                    <button type="button" className={btnGhost} onClick={connectTripwire} disabled={mapperBusy || !twUser || !twPass}>
-                      Connect &amp; fetch
+                  <div className="mt-3 space-y-2">
+                    <details className="rounded border border-slate-700 bg-slate-900/60 p-2 text-xs text-slate-300" open>
+                      <summary className="cursor-pointer font-medium text-slate-200">
+                        No Tripwire account yet? Set one up ↓
+                      </summary>
+                      <ol className="mt-2 list-decimal space-y-1 pl-4">
+                        <li>
+                          Go to{" "}
+                          <a className="text-sky-400 underline" href="https://tw.torpedodelivery.com" target="_blank" rel="noreferrer">
+                            tw.torpedodelivery.com
+                          </a>{" "}
+                          and log in with EVE.
+                        </li>
+                        <li>Gear (top-right) → <b>Account Settings</b>.</li>
+                        <li><b>Change Username</b> → set it to your <b>in-game name</b> → Save.</li>
+                        <li><b>Change Password</b> → pick a password (<b>not</b> your EVE password) → Save.</li>
+                        <li>Enter that username &amp; password below.</li>
+                      </ol>
+                    </details>
+
+                    <input
+                      className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm"
+                      value={twUser}
+                      onChange={(e) => setTwUser(e.target.value)}
+                      placeholder="Tripwire username (your in-game name)"
+                      autoComplete="off"
+                    />
+                    <input
+                      type="password"
+                      className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm"
+                      value={twPass}
+                      onChange={(e) => setTwPass(e.target.value)}
+                      placeholder="Tripwire password"
+                      autoComplete="off"
+                    />
+                    <details className="text-[11px] text-slate-500">
+                      <summary className="cursor-pointer">Using a different Tripwire? Change the URL</summary>
+                      <input
+                        className="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs"
+                        value={twBase}
+                        onChange={(e) => setTwBase(e.target.value)}
+                        placeholder="Tripwire URL"
+                      />
+                    </details>
+                    <button
+                      type="button"
+                      className={`${btnPrimary} w-full`}
+                      onClick={connectTripwire}
+                      disabled={mapperBusy || !twUser || !twPass}
+                    >
+                      {mapperBusy ? "Connecting…" : "Connect & fetch chain"}
                     </button>
-                    <p className="text-[11px] text-slate-500">Saved encrypted so the chain auto-loads next time.</p>
+                    <p className="text-[11px] text-slate-500">Saved encrypted; auto-loads next time.</p>
                   </div>
                 )}
-              </>
+              </div>
             )}
+
             <p className="text-xs text-slate-400">
-              {chainCount > 0 ? `${chainCount} live wormhole connections loaded.` : "No live wormholes loaded — gate-only routing."}
+              {chainCount > 0
+                ? `${chainCount} live wormhole connections loaded.`
+                : "No live wormholes loaded — gate-only routing."}
             </p>
             {mapperMsg && <p className="text-xs text-slate-500">{mapperMsg}</p>}
           </div>
