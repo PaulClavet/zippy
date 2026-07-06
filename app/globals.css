@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: #0a0e14;
+  color: #e6e6e6;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Thin scrollbars for the route table on dark backgrounds. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a3444 transparent;
+}
