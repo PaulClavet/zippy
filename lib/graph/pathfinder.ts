@@ -9,6 +9,13 @@ import {
   securityBand,
 } from "./types";
 
+/**
+ * Standard maximum wormhole lifetime (hours). Nothing in EVE currently lasts
+ * beyond this, so a signature older than it is a "ghost" (e.g. a dead K→K hole
+ * recorded by left-on Tripwire auto-tracking) and is dropped by default.
+ */
+export const MAX_WORMHOLE_LIFETIME_HOURS = 24;
+
 /** Constraints applied to wormhole connections during routing. */
 export interface WormholeConstraints {
   /**
@@ -25,6 +32,16 @@ export interface WormholeConstraints {
   allowMassDestab?: boolean;
   /** Block holes whose signature is older than this many hours (when age known). */
   maxAgeHours?: number;
+  /**
+   * Drop wormholes older than the maximum possible lifetime (ghost sigs — e.g.
+   * dead K→K holes left by auto-tracking). Default ON; set false to keep them.
+   */
+  dropImpossibleAge?: boolean;
+  /**
+   * Drop wormholes with no type code AND no signature id (unidentifiable junk).
+   * Default ON; set false to keep them.
+   */
+  dropUnidentified?: boolean;
 }
 
 /**
@@ -87,6 +104,17 @@ function isPassable(conn: Connection, opts: RouteOptions): boolean {
   if (c.allowMassCritical === false && wh.mass === "critical") return false;
   if (c.allowMassDestab === false && wh.mass === "destab") return false;
   if (c.maxAgeHours != null && wh.ageHours != null && wh.ageHours > c.maxAgeHours) {
+    return false;
+  }
+  // Ghost-sig guards (default on): impossible age, and wholly unidentified holes.
+  if (
+    c.dropImpossibleAge !== false &&
+    wh.ageHours != null &&
+    wh.ageHours > MAX_WORMHOLE_LIFETIME_HOURS
+  ) {
+    return false;
+  }
+  if (c.dropUnidentified !== false && !wh.wormholeType && !wh.signatureFrom && !wh.signatureTo) {
     return false;
   }
   return true;

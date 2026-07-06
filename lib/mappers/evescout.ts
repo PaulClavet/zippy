@@ -67,6 +67,7 @@ export function parseEveScout(data: EveScoutSignature[], now: number): WormholeL
         signatureTo: s.in_signature ?? undefined,
         wormholeType: s.wh_type ?? undefined,
         ageHours,
+        estimatedHoursLeft: s.remaining_hours ?? undefined,
       },
     });
   }

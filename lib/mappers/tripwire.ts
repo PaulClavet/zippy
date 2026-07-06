@@ -57,6 +57,23 @@ function cleanSig(sig: string | undefined): string | undefined {
   return BLANK_SIGS.has(trimmed) ? undefined : trimmed.toUpperCase();
 }
 
+/**
+ * Parse a Tripwire timestamp to epoch ms. Tries native parsing first, then the
+ * PHP "Y-m-d H:i:s e" shape (e.g. "2026-07-05 20:00:00 UTC"), treating the
+ * wall-clock time as UTC — accurate enough for the >24h ghost-sig check.
+ */
+function parseTripwireTime(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const direct = Date.parse(value);
+  if (!Number.isNaN(direct)) return direct;
+  const m = value.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/);
+  if (m) {
+    const t = Date.parse(`${m[1]}T${m[2]}Z`);
+    if (!Number.isNaN(t)) return t;
+  }
+  return undefined;
+}
+
 /** Pure parse (unit-testable) of a Tripwire chain into graph links. */
 export function parseTripwire(chain: TripwireChain, now: number): WormholeLink[] {
   const byId = new Map<string, TripwireSignature>();
@@ -73,11 +90,8 @@ export function parseTripwire(chain: TripwireChain, now: number): WormholeLink[]
 
     const type = wh.type && !BLANK_SIGS.has(wh.type) ? wh.type.toUpperCase() : undefined;
     const life: LifeStatus = (wh.life ?? "").toLowerCase() === "critical" ? "eol" : "stable";
-    const modified = a.modifiedTime ?? b.modifiedTime;
-    const ageHours =
-      modified && !Number.isNaN(Date.parse(modified))
-        ? Math.max(0, (now - Date.parse(modified)) / 3_600_000)
-        : undefined;
+    const modifiedMs = parseTripwireTime(a.modifiedTime ?? b.modifiedTime);
+    const ageHours = modifiedMs != null ? Math.max(0, (now - modifiedMs) / 3_600_000) : undefined;
 
     links.push({
       a: aSys,

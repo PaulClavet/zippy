@@ -11,17 +11,28 @@ export interface SystemHit {
   regionName?: string;
 }
 
+export interface WormholeDetailsDTO {
+  signature?: string;
+  returnSignature?: string;
+  type?: string;
+  size: string;
+  mass: string;
+  life: string;
+  ageHours?: number;
+  estimatedHoursLeft?: number;
+  maxHoursLeft?: number;
+}
+
 export interface RouteStepDTO {
   index: number;
   systemId: number;
   systemName: string;
   security: number;
   regionName?: string;
-  connectionType?: "gate" | "wormhole";
-  signature?: string;
-  returnSignature?: string;
-  wormholeType?: string;
-  instruction: string;
+  action?: string;
+  via?: "gate" | "wormhole";
+  wormhole?: WormholeDetailsDTO;
+  isDestination: boolean;
 }
 
 export interface PlanSuccessDTO {

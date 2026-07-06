@@ -1,55 +1,111 @@
-import type { ConnectionType } from "../graph/types";
-import type { Route } from "../graph/pathfinder";
+import type {
+  ConnectionType,
+  LifeStatus,
+  MassStatus,
+  WormholeInfo,
+  WormholeSize,
+} from "../graph/types";
+import { MAX_WORMHOLE_LIFETIME_HOURS, type Route } from "../graph/pathfinder";
 
-/** A single hop rendered for the route table. */
+/** A hole flagged end-of-life has at most ~4 hours left. */
+const EOL_MAX_HOURS = 4;
+
+export interface WormholeDetails {
+  /** Signature to scan in THIS system (the side you jump from). */
+  signature?: string;
+  /** Signature on the far side (the return hole). */
+  returnSignature?: string;
+  type?: string;
+  size: WormholeSize;
+  mass: MassStatus;
+  life: LifeStatus;
+  /** Hours since discovery/last update. */
+  ageHours?: number;
+  /** Reported hours remaining, if a mapper estimates it. */
+  estimatedHoursLeft?: number;
+  /** Upper bound on time remaining, from discovery age (+ EOL cap). */
+  maxHoursLeft?: number;
+}
+
+/** One row of the route: a system and the action to take while in it. */
 export interface RouteStep {
   index: number;
   systemId: number;
   systemName: string;
   security: number;
   regionName?: string;
-  /** How you arrived at this system (undefined for the origin). */
-  connectionType?: ConnectionType;
-  /** Wormhole signature on the entry side, e.g. "ABC-123". */
-  signature?: string;
-  /** Wormhole signature on the far side (the return hole). */
-  returnSignature?: string;
-  /** Wormhole type code, e.g. "K162". */
-  wormholeType?: string;
-  /** Human-readable instruction for this hop. */
-  instruction: string;
+  /** What to do in THIS system to proceed (undefined only at the destination). */
+  action?: string;
+  /** How you leave this system. */
+  via?: ConnectionType;
+  /** Details of the outgoing jump, when leaving via a wormhole. */
+  wormhole?: WormholeDetails;
+  isDestination: boolean;
 }
 
+function maxHoursLeft(wh: WormholeInfo): number | undefined {
+  if (wh.ageHours == null) return undefined;
+  let max = Math.max(0, MAX_WORMHOLE_LIFETIME_HOURS - wh.ageHours);
+  if (wh.life === "eol") max = Math.min(max, EOL_MAX_HOURS);
+  return max;
+}
+
+/**
+ * Turn a route into per-system rows describing the action to take *in* each
+ * system. A row's action refers to the connection *leaving* it (departure-
+ * based), so e.g. the origin row reads "Take the stargate to <next>". Wormhole
+ * departures carry the hole's details (type/size/mass/life/time).
+ */
 export function describeRoute(route: Route): RouteStep[] {
-  const last = route.hops.length - 1;
-  return route.hops.map((hop, i) => {
+  const hops = route.hops;
+  return hops.map((hop, i) => {
     const sys = hop.system;
-    const conn = hop.connection;
-    const wh = conn?.wormhole;
-
-    let instruction: string;
-    if (!conn) {
-      instruction = "Start here";
-    } else if (conn.type === "gate") {
-      instruction = `Take the stargate to ${sys.name}`;
-    } else {
-      const sig = wh?.signatureFrom ?? "???";
-      const code = wh?.wormholeType ?? "----";
-      instruction = `Jump wormhole ${sig} [${code}] into ${sys.name}`;
-    }
-    if (i === last && last > 0) instruction += " — arrive at destination";
-
-    return {
+    const next = hops[i + 1];
+    const base = {
       index: i,
       systemId: sys.id,
       systemName: sys.name,
       security: sys.security,
       regionName: sys.regionName,
-      connectionType: conn?.type,
-      signature: wh?.signatureFrom,
-      returnSignature: wh?.signatureTo,
-      wormholeType: wh?.wormholeType,
-      instruction,
+    };
+
+    if (!next) {
+      return { ...base, action: "Arrive — destination", isDestination: true };
+    }
+
+    const conn = next.connection!;
+    if (conn.type === "gate") {
+      return {
+        ...base,
+        action: `Take the stargate to ${next.system.name}`,
+        via: "gate" as const,
+        isDestination: false,
+      };
+    }
+
+    const wh = conn.wormhole;
+    const sig = wh?.signatureFrom ?? "???";
+    const code = wh?.wormholeType ?? "----";
+    const wormhole: WormholeDetails | undefined = wh
+      ? {
+          signature: wh.signatureFrom,
+          returnSignature: wh.signatureTo,
+          type: wh.wormholeType,
+          size: wh.size,
+          mass: wh.mass,
+          life: wh.life,
+          ageHours: wh.ageHours,
+          estimatedHoursLeft: wh.estimatedHoursLeft,
+          maxHoursLeft: maxHoursLeft(wh),
+        }
+      : undefined;
+
+    return {
+      ...base,
+      action: `Jump wormhole ${sig} [${code}] to ${next.system.name}`,
+      via: "wormhole" as const,
+      wormhole,
+      isDestination: false,
     };
   });
 }

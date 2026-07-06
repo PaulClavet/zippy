@@ -65,6 +65,8 @@ export function RoutePlanner() {
   const [minSize, setMinSize] = useState<WormholeSize>("small");
   const [ignoreEol, setIgnoreEol] = useState(false);
   const [ignoreMassCrit, setIgnoreMassCrit] = useState(false);
+  const [ignoreImpossibleAge, setIgnoreImpossibleAge] = useState(true);
+  const [ignoreUnidentified, setIgnoreUnidentified] = useState(true);
   const [ignoreStale, setIgnoreStale] = useState(false);
   const [ageHours, setAgeHours] = useState(DEFAULT_AGE_THRESHOLD_HOURS);
 
@@ -129,6 +131,8 @@ export function RoutePlanner() {
           allowEol: !ignoreEol,
           allowMassCritical: !ignoreMassCrit,
           maxAgeHours: ignoreStale ? ageHours : undefined,
+          dropImpossibleAge: ignoreImpossibleAge,
+          dropUnidentified: ignoreUnidentified,
         },
         avoid: useAvoidance ? avoidList : [],
         chain,
@@ -326,7 +330,7 @@ export function RoutePlanner() {
 
         {result?.ok && (
           <>
-            <RouteTable steps={result.steps} />
+            <RouteTable steps={result.steps} tripwireBase={twBase} />
             <Section
               title="Fleet format"
               right={
@@ -541,6 +545,16 @@ export function RoutePlanner() {
                 </label>
                 <Check label="Ignore end-of-life holes" checked={ignoreEol} onChange={setIgnoreEol} />
                 <Check label="Ignore mass-critical holes" checked={ignoreMassCrit} onChange={setIgnoreMassCrit} />
+                <Check
+                  label="Ignore ghost sigs (age > 24h)"
+                  checked={ignoreImpossibleAge}
+                  onChange={setIgnoreImpossibleAge}
+                />
+                <Check
+                  label="Ignore unidentified holes (no type/ID)"
+                  checked={ignoreUnidentified}
+                  onChange={setIgnoreUnidentified}
+                />
                 <div className="flex items-center gap-2">
                   <Check label="Ignore holes older than" checked={ignoreStale} onChange={setIgnoreStale} />
                   <input

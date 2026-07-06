@@ -41,8 +41,10 @@ export interface WormholeInfo {
   signatureTo?: string;
   /** Wormhole type code, e.g. "K162", "C247", "N110". */
   wormholeType?: string;
-  /** Age of the signature in hours, if known (for EOL heuristics). */
+  /** Age of the signature in hours since discovery/last update, if known. */
   ageHours?: number;
+  /** Reported hours remaining, when a mapper provides an estimate (Eve-Scout). */
+  estimatedHoursLeft?: number;
 }
 
 export interface Connection {
